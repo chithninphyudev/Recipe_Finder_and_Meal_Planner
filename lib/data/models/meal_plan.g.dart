@@ -19,20 +19,23 @@ class MealPlanAdapter extends TypeAdapter<MealPlan> {
     return MealPlan(
       dayIndex: fields[0] as int,
       mealName: fields[1] as String,
-      recipeId: fields[2] as String,
+      recipeId: fields[2] as int,
+      recipeName: fields[3] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, MealPlan obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.dayIndex)
       ..writeByte(1)
       ..write(obj.mealName)
       ..writeByte(2)
-      ..write(obj.recipeId);
+      ..write(obj.recipeId)
+      ..writeByte(3)
+      ..write(obj.recipeName);
   }
 
   @override
@@ -53,11 +56,13 @@ class MealPlanAdapter extends TypeAdapter<MealPlan> {
 MealPlan _$MealPlanFromJson(Map<String, dynamic> json) => MealPlan(
       dayIndex: (json['dayIndex'] as num).toInt(),
       mealName: json['mealName'] as String,
-      recipeId: json['recipeId'] as String,
+      recipeId: (json['recipeId'] as num).toInt(),
+      recipeName: json['recipeName'] as String,
     );
 
 Map<String, dynamic> _$MealPlanToJson(MealPlan instance) => <String, dynamic>{
       'dayIndex': instance.dayIndex,
       'mealName': instance.mealName,
       'recipeId': instance.recipeId,
+      'recipeName': instance.recipeName,
     };

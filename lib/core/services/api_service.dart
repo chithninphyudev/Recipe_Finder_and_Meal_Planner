@@ -3,6 +3,7 @@ import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:recipe_finder_and_meal_planner/data/models/ingredient.dart';
 import 'package:recipe_finder_and_meal_planner/data/models/instruction.dart';
+import '../../data/models/recipe_by_ingredients.dart';
 import '/core/constants/api_constants.dart';
 import '/data/models/recipe.dart';
 
@@ -47,6 +48,34 @@ class ApiService {
     }
   }
 
+  Future<Recipe> getRecipeInformation(int id) async {
+    try {
+      final response = await _dio.get(
+        '/recipes/informationBulk',
+        queryParameters: {
+          'apiKey': ApiConstants.apiKey,
+          'ids': "$id",
+        },
+      );
+
+      final List<dynamic> recipesJson = response.data;
+
+      final recipes =
+          recipesJson.map<Recipe>((json) => _parseRecipe(json)).toList();
+
+      if(recipes.isEmpty) {
+        throw Exception('This Recipe is not exist');
+      } else {
+        return recipes.first;
+      }
+
+    } on DioException catch (e) {
+      throw Exception('Failed to load recipe information: ${e.message}');
+    } catch (e) {
+      throw Exception('An unknown error occurred: $e');
+    }
+  }
+
   Recipe _parseRecipe(Map<String, dynamic> json) {
     return Recipe(
       id: json['id'] is int ? json['id'] as int : 0,
@@ -76,6 +105,71 @@ class ApiService {
           (json['analyzedInstructions'] as List<dynamic>? ?? [])
               .map((e) => Instruction.fromJson(e as Map<String, dynamic>))
               .toList(),
+    );
+  }
+
+  Future<List<String>> autocompleteIngredients(String query, {int number = 10}) async {
+    try {
+      final response = await _dio.get(
+        '/food/ingredients/autocomplete',
+        queryParameters: {
+          'query': query,
+          'number': number,
+          'apiKey': ApiConstants.apiKey,
+        },
+      );
+
+      final List<dynamic> data = response.data as List<dynamic>;
+      return data.map<String>((item) => item['name'] as String).toList();
+    } on DioException catch (e) {
+      throw Exception('Failed to fetch autocomplete ingredients: ${e.message}');
+    }
+  }
+
+  Future<List<RecipeByIngredients>> findRecipesByIngredients(
+      List<String> ingredients, {int number = 10, int ranking = 1}) async {
+    if (ingredients.isEmpty) return [];
+
+    try {
+      final response = await _dio.get(
+        '/recipes/findByIngredients',
+        queryParameters: {
+          'ingredients': ingredients.join(','),
+          'number': number,
+          'ranking': ranking,
+          'apiKey': ApiConstants.apiKey,
+        },
+      );
+
+      final List<dynamic> recipesJson = response.data;
+
+      final recipes =
+          recipesJson.map<RecipeByIngredients>((json) => _parseRecipeByIngredients(json)).toList();
+
+      return recipes;
+    } on DioException catch (e) {
+      throw Exception('Failed to find recipes by ingredients: ${e.message}');
+    }
+  }
+
+  RecipeByIngredients _parseRecipeByIngredients(Map<String, dynamic> json) {
+    return RecipeByIngredients(
+      id: json['id'] is int ? json['id'] as int : 0,
+      title: json['title'] as String? ?? 'Unknown Recipe',
+      image: json['image'] as String? ?? '',
+      imageType: json['imageType'] as String? ?? '',
+      usedIngredientCount: json['usedIngredientCount'] is int ? json['usedIngredientCount'] as int : 0,
+      missedIngredientCount: json['missedIngredientCount'] is int ? json['missedIngredientCount'] as int : 0,
+      missedIngredients: (json['missedIngredients'] as List<dynamic>? ?? [])
+          .map((e) => Ingredient.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      usedIngredients: (json['usedIngredients'] as List<dynamic>? ?? [])
+          .map((e) => Ingredient.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      unusedIngredients: (json['unusedIngredients'] as List<dynamic>? ?? [])
+          .map((e) => Ingredient.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      likes: json['likes'] is int ? json['likes'] as int : 0,
     );
   }
 }

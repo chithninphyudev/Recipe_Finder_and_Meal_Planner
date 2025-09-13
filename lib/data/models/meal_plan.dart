@@ -13,12 +13,16 @@ class MealPlan {
   final String mealName;
 
   @HiveField(2)
-  final String recipeId;
+  final int recipeId;
+
+  @HiveField(3)
+  final String recipeName;
 
   const MealPlan({
     required this.dayIndex,
     required this.mealName,
     required this.recipeId,
+    required this.recipeName,
   });
 
   factory MealPlan.fromJson(Map<String, dynamic> json) =>

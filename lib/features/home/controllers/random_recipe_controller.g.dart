@@ -7,7 +7,7 @@ part of 'random_recipe_controller.dart';
 // **************************************************************************
 
 String _$randomRecipeControllerHash() =>
-    r'7f4733d7cf2263fd7893c581028b9aa137faefd4';
+    r'f6dd8fa87fcff3c6a6eba85e88fb845d63c5b8dd';
 
 /// See also [RandomRecipeController].
 @ProviderFor(RandomRecipeController)
